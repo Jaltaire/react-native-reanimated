@@ -3,6 +3,7 @@ package com.swmansion.reanimated.nativeProxy
 import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTModernEventEmitter
 import com.swmansion.reanimated.resolveCustomEventName
 
@@ -13,6 +14,8 @@ class EventHandler : RCTModernEventEmitter {
 
     internal var isInDrawPassProvider: (() -> Boolean)? = null
     internal var nativeCallGuard: (() -> Unit) -> Unit = { it() }
+    internal var handlerWaitingProvider: ((String, Int) -> Boolean)? = null
+    private var forwardedAnyEvent = false
 
     @DoNotStrip
     private constructor(hybridData: HybridData) {
@@ -40,7 +43,17 @@ class EventHandler : RCTModernEventEmitter {
         params: WritableMap?,
     ) {
         val resolvedEventName = resolveCustomEventName(eventName)
+        if (handlerWaitingProvider?.invoke(resolvedEventName, targetTag) == false) {
+            return
+        }
+        forwardedAnyEvent = true
         nativeCallGuard { receiveEvent(resolvedEventName, targetTag, params, isInDrawPass()) }
+    }
+
+    internal fun dispatch(event: Event<*>): Boolean {
+        forwardedAnyEvent = false
+        event.dispatchModern(this)
+        return forwardedAnyEvent
     }
 
     external fun receiveEvent(

@@ -519,6 +519,7 @@ open class NativeProxy {
     fun registerEventHandler(handler: EventHandler) {
         handler.isInDrawPassProvider = { mNodesManager!!.isInDrawPass() }
         handler.nativeCallGuard = { receive -> ifNotInvalidated(Unit, receive) }
+        handler.handlerWaitingProvider = ::isAnyHandlerWaitingForEvent
         mNodesManager!!.registerEventHandler(handler)
     }
 

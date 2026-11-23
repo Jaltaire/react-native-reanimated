@@ -191,8 +191,9 @@ class NodesManager(
                 // Ensure draw-pass tracking is attached before event handling; the backend reads
                 // isInDrawPass during receiveEvent.
                 mDrawPassDetector.initialize()
-                handleEvent(event)
-                performOperationsRespectingDrawPass()
+                if (handleEvent(event)) {
+                    performOperationsRespectingDrawPass()
+                }
             } else {
                 val eventName = resolveCustomEventName(event.eventName)
                 val viewTag = event.viewTag
@@ -209,9 +210,7 @@ class NodesManager(
         }
     }
 
-    private fun handleEvent(event: Event<*>) {
-        mCustomEventHandler?.let(event::dispatchModern)
-    }
+    private fun handleEvent(event: Event<*>): Boolean = mCustomEventHandler?.dispatch(event) == true
 
     private fun handleEvent(copiedEvent: CopiedEvent) {
         mCustomEventHandler?.handle(copiedEvent.eventName, copiedEvent.targetTag, copiedEvent.payload)
