@@ -405,6 +405,7 @@ open class NativeProxy {
         handler.mCustomEventNamesResolver = mNodesManager!!.getEventNameResolver()
         handler.isInDrawPassProvider = { mNodesManager!!.isInDrawPass() }
         handler.nativeCallGuard = { receive -> ifNotInvalidated(Unit, receive) }
+        handler.handlerWaitingProvider = ::isAnyHandlerWaitingForEvent
         mNodesManager!!.registerEventHandler(handler)
     }
 

@@ -87,9 +87,13 @@ void UIEventHandlerRegistry::processEvent(
 
 bool UIEventHandlerRegistry::isAnyHandlerWaitingForEvent(const std::string &eventName, const int emitterReactTag) {
   const std::lock_guard<std::mutex> lock(instanceMutex);
+  const auto handlersWithoutTagIt = eventMappingsWithoutTag.find(eventName);
+  if (handlersWithoutTagIt != eventMappingsWithoutTag.end() && !handlersWithoutTagIt->second.empty()) {
+    return true;
+  }
   const auto eventHash = std::make_pair(emitterReactTag, eventName);
-  auto it = eventMappingsWithTag.find(eventHash);
-  return it != eventMappingsWithTag.end() && !it->second.empty();
+  const auto handlersWithTagIt = eventMappingsWithTag.find(eventHash);
+  return handlersWithTagIt != eventMappingsWithTag.end() && !handlersWithTagIt->second.empty();
 }
 
 } // namespace reanimated

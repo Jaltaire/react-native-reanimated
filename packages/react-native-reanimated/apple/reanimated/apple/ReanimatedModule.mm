@@ -87,14 +87,17 @@ RCT_EXPORT_MODULE(ReanimatedModule);
 
   // When USE_ANIMATION_BACKEND is on, flushes run inside handleEventAndFlush; otherwise
   // REANodesManager calls performOperations after the event (see REANodesManager).
-  [_nodesManager registerEventHandler:^(id<RCTEvent> event) {
+  [_nodesManager registerEventHandler:^BOOL(id<RCTEvent> event) {
     auto reanimatedModuleProxy = weakReanimatedModuleProxy.lock();
     if (!reanimatedModuleProxy) {
-      return;
+      return NO;
     }
     // handles RCTEvents from RNGestureHandler
     std::string eventName = [event.eventName UTF8String];
     int emitterReactTag = [event.viewTag intValue];
+    if (!reanimatedModuleProxy->isAnyHandlerWaitingForEvent(eventName, emitterReactTag)) {
+      return NO;
+    }
     id eventData = [event arguments][2];
     jsi::Value payload = convertObjCObjectToJSIValue(uiRuntime, eventData);
     if constexpr (StaticFeatureFlags::getFlag("USE_ANIMATION_BACKEND")) {
@@ -103,6 +106,7 @@ RCT_EXPORT_MODULE(ReanimatedModule);
       const double currentTime = CACurrentMediaTime() * 1000;
       reanimatedModuleProxy->handleEvent(eventName, emitterReactTag, payload, currentTime);
     }
+    return YES;
   }];
 }
 

@@ -15,6 +15,7 @@ import com.facebook.react.uimanager.common.UIManagerType
 import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.EventDispatcherListener
 import com.facebook.react.uimanager.events.RCTModernEventEmitter
+import com.swmansion.reanimated.nativeProxy.EventHandler
 import com.swmansion.reanimated.nativeProxy.NoopEventHandler
 import java.util.ArrayList
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -206,8 +207,9 @@ class NodesManager(
                 // Ensure draw-pass tracking is attached before event handling; the backend reads
                 // isInDrawPass during receiveEvent.
                 mDrawPassDetector.initialize()
-                handleEvent(event)
-                performOperationsRespectingDrawPass()
+                if (handleEvent(event)) {
+                    performOperationsRespectingDrawPass()
+                }
             } else {
                 val eventName = mCustomEventNamesResolver.resolveCustomEventName(event.eventName) ?: return
                 val viewTag = event.viewTag
@@ -224,8 +226,13 @@ class NodesManager(
         }
     }
 
-    private fun handleEvent(event: Event<*>) {
-        event.dispatchModern(mCustomEventHandler)
+    private fun handleEvent(event: Event<*>): Boolean {
+        val handler = mCustomEventHandler
+        if (handler !is EventHandler) {
+            event.dispatchModern(handler)
+            return true
+        }
+        return handler.dispatch(event)
     }
 
     private fun handleEvent(copiedEvent: CopiedEvent) {

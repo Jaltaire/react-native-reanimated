@@ -4,7 +4,7 @@
 #import <reanimated/apple/READisplayLink.h>
 
 typedef void (^REAOnAnimationCallback)(READisplayLink *displayLink);
-typedef void (^REAEventHandler)(id<RCTEvent> event);
+typedef BOOL (^REAEventHandler)(id<RCTEvent> event);
 typedef void (^CADisplayLinkOperation)(READisplayLink *displayLink);
 typedef void (^REAPerformOperations)();
 

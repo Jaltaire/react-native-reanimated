@@ -49,9 +49,7 @@ using namespace facebook::react;
 
   if ((self = [super init])) {
     _onAnimationCallbacks = [NSMutableArray new];
-    _eventHandler = ^(id<RCTEvent> event) {
-      // no-op
-    };
+    _eventHandler = ^BOOL(id<RCTEvent> event) { return NO; };
   }
   [self useDisplayLinkOnMainQueue:^(READisplayLink *displayLink) { [displayLink setPaused:YES]; }];
 
@@ -141,7 +139,9 @@ using namespace facebook::react;
     if (eventHandler == nil) {
       return;
     }
-    eventHandler(event);
+    if (!eventHandler(event)) {
+      return;
+    }
     if constexpr (reanimated::StaticFeatureFlags::getFlag("USE_ANIMATION_BACKEND")) {
       // Flush already ran inside ReanimatedModuleProxy::handleEventAndFlush (see ReanimatedModule).
     } else {

@@ -5,6 +5,7 @@ import com.facebook.proguard.annotations.DoNotStrip
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.UIManagerModule
+import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.events.RCTModernEventEmitter
 
 @DoNotStrip
@@ -15,6 +16,8 @@ class EventHandler : RCTModernEventEmitter {
     var mCustomEventNamesResolver: UIManagerModule.CustomEventNamesResolver? = null
     internal var isInDrawPassProvider: (() -> Boolean)? = null
     internal var nativeCallGuard: (() -> Unit) -> Unit = { it() }
+    internal var handlerWaitingProvider: ((String, Int) -> Boolean)? = null
+    private var forwardedAnyEvent = false
 
     @DoNotStrip
     private constructor(hybridData: HybridData) {
@@ -32,8 +35,7 @@ class EventHandler : RCTModernEventEmitter {
         params: WritableMap?,
         category: Int,
     ) {
-        val resolvedEventName = mCustomEventNamesResolver!!.resolveCustomEventName(eventName) ?: eventName
-        nativeCallGuard { receiveEvent(resolvedEventName, targetTag, params, isInDrawPass()) }
+        handle(eventName, targetTag, params)
     }
 
     override fun receiveEvent(
@@ -42,8 +44,7 @@ class EventHandler : RCTModernEventEmitter {
         eventName: String,
         params: WritableMap?,
     ) {
-        val resolvedEventName = mCustomEventNamesResolver!!.resolveCustomEventName(eventName) ?: eventName
-        nativeCallGuard { receiveEvent(resolvedEventName, targetTag, params, isInDrawPass()) }
+        handle(eventName, targetTag, params)
     }
 
     override fun receiveEvent(
@@ -51,8 +52,26 @@ class EventHandler : RCTModernEventEmitter {
         eventName: String,
         params: WritableMap?,
     ) {
+        handle(eventName, targetTag, params)
+    }
+
+    private fun handle(
+        eventName: String,
+        targetTag: Int,
+        params: WritableMap?,
+    ) {
         val resolvedEventName = mCustomEventNamesResolver!!.resolveCustomEventName(eventName) ?: eventName
+        if (handlerWaitingProvider?.invoke(resolvedEventName, targetTag) == false) {
+            return
+        }
+        forwardedAnyEvent = true
         nativeCallGuard { receiveEvent(resolvedEventName, targetTag, params, isInDrawPass()) }
+    }
+
+    internal fun dispatch(event: Event<*>): Boolean {
+        forwardedAnyEvent = false
+        event.dispatchModern(this)
+        return forwardedAnyEvent
     }
 
     override fun receiveTouches(
