@@ -47,8 +47,7 @@ class CopiedEvent(
                 ) {
                     this@CopiedEvent.targetTag = targetTag
                     this@CopiedEvent.eventName = eventName
-                    assert(params != null)
-                    this@CopiedEvent.payload = params!!.copy()
+                    this@CopiedEvent.payload = params?.copy()
                 }
 
                 override fun receiveEvent(
@@ -60,8 +59,7 @@ class CopiedEvent(
                     this@CopiedEvent.surfaceId = surfaceId
                     this@CopiedEvent.targetTag = targetTag
                     this@CopiedEvent.eventName = eventName
-                    assert(params != null)
-                    this@CopiedEvent.payload = params!!.copy()
+                    this@CopiedEvent.payload = params?.copy()
                 }
 
                 override fun receiveEvent(
@@ -78,8 +76,7 @@ class CopiedEvent(
                     this@CopiedEvent.eventName = eventName
                     this@CopiedEvent.canCoalesceEvent = canCoalesceEvent
                     this@CopiedEvent.customCoalesceKey = customCoalesceKey
-                    assert(params != null)
-                    this@CopiedEvent.payload = params!!.copy()
+                    this@CopiedEvent.payload = params?.copy()
                     this@CopiedEvent.category = category
                 }
             },
