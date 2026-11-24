@@ -85,6 +85,7 @@ const SUITES: RuntimeTestSuite[] = [
       require('./tests/events/hostReplacement.test');
       require('./tests/events/microtasksInEventHandler.test');
       require('./tests/events/scrollDrivenStyle.test');
+      require('./tests/events/finishedAnimationRevert.test');
       require('./tests/events/unhandledEvents.test');
     },
   },
